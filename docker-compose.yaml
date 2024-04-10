@@ -1,0 +1,40 @@
+services:
+  pgdatabase:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=linkedin_de
+    volumes:
+      - "./linkedin_de-volume:/var/lib/postgresql/data:rw"
+    ports:
+      - "5433:5432"
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    volumes:
+      - "./data_pgadmin:/var/lib/pgadmin"
+    ports:
+      - "8080:80"
+  magic:
+    image: mageai/mageai:latest
+    command: mage start de-zoomcamp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      USER_CODE_PATH: /home/src/de-zoomcamp
+      POSTGRES_DBNAME: linkedin_de
+      POSTGRES_SCHEMA: public
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_HOST: pgdatabase
+      POSTGRES_PORT: 5432
+    ports:
+      - 6788:6789
+    volumes:
+      - .:/home/src/
+      - ~/Documents/secrets/personal-gcp.json:/home/src/personal-gcp.json
+    restart: on-failure:5
